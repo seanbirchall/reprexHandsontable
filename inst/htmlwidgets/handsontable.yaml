@@ -1,0 +1,11 @@
+dependencies:
+  - name: jquery
+    version: 3.6.0
+    src: htmlwidgets/lib/jquery
+    script: jquery.min.js
+  - name: handsontable
+    version: 15.0.0
+    src: htmlwidgets/lib/handsontable
+    script:
+      - handsontable.full.js
+    stylesheet: handsontable.css

@@ -1,10 +1,13 @@
 Package: reprexHandsontable
 Type: Package
-Title: Handsontable.js widget
+Title: Handsontable Widget for R
 Version: 0.1.0
-Author: Sean Birchall
-Maintainer: The package maintainer <sean@scrapeable.com>
-Description: Updated R htmlwidget to handsontable.js
-License: See handsontable
+Author: Your Name
+Maintainer: Your Name <your@email.com>
+Description: An htmlwidget wrapper for handsontable.
+License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+Imports:
+    htmlwidgets,
+    shiny
+RoxygenNote: 7.2.3

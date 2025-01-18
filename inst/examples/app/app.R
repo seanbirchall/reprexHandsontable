@@ -1,20 +1,22 @@
+# inst/examples/app.R
 library(shiny)
-
-# Sample data
-mtcars_styled <- mtcars[1:10, 1:6]
+library(reprexHandsontable)
 
 ui <- fluidPage(
-  titlePanel("Handsontable Demo"),
-
+  # Add CDN dependencies directly
   tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "handsontable.css")
+    tags$link(href = "https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.css", rel = "stylesheet"),
+    tags$script(src = "https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.js")
   ),
+
+  titlePanel("Handsontable Demo"),
 
   sidebarLayout(
     sidebarPanel(
       checkboxInput("show_headers", "Show Headers", TRUE),
       checkboxInput("enable_resize", "Enable Resizing", TRUE),
       checkboxInput("word_wrap", "Word Wrap", FALSE),
+      checkboxInput("hide_grid", "Hide Grid Lines", FALSE),
       numericInput("fixed_rows", "Fixed Rows", 0, min = 0, max = 5),
       numericInput("fixed_cols", "Fixed Columns", 0, min = 0, max = 3),
       actionButton("apply_style", "Apply Styling"),
@@ -23,17 +25,9 @@ ui <- fluidPage(
       verbatimTextOutput("selection_info"),
       verbatimTextOutput("change_info")
     ),
-
     mainPanel(
       handsontableOutput("hot_table")
     )
-  ),
-
-  tags$footer(
-      tags$script(type = "text/javascript", src = "htmlwidgets.js"),
-      tags$script(type = "text/javascript", src = "https://cdnjs.cloudflare.com/ajax/libs/handsontable/15.0.0/handsontable.full.js"),
-      tags$script(type = "text/javascript", src = "handsontable.min.js"),
-      tags$script(type = "text/javascript", src = "handsontable.js")
   )
 )
 
@@ -48,7 +42,7 @@ server <- function(input, output, session) {
   # Render the table
   output$hot_table <- renderHandsontable({
     hot <- handsontable(
-      data = mtcars_styled,
+      data = mtcars,
       colHeaders = input$show_headers,
       rowHeaders = input$show_headers,
       fixedRowsTop = input$fixed_rows,
@@ -56,6 +50,7 @@ server <- function(input, output, session) {
       manualColumnResize = input$enable_resize,
       manualRowResize = input$enable_resize,
       wordWrap = input$word_wrap,
+      hideGridLines = input$hide_grid,
       height = "400px"
     )
 
