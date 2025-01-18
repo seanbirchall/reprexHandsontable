@@ -1,11 +1,14 @@
 library(shiny)
-library(reprexHandsontable)
 
 # Sample data
 mtcars_styled <- mtcars[1:10, 1:6]
 
 ui <- fluidPage(
   titlePanel("Handsontable Demo"),
+
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "handsontable.css")
+  ),
 
   sidebarLayout(
     sidebarPanel(
@@ -24,6 +27,13 @@ ui <- fluidPage(
     mainPanel(
       handsontableOutput("hot_table")
     )
+  ),
+
+  tags$footer(
+      tags$script(type = "text/javascript", src = "htmlwidgets.js"),
+      tags$script(type = "text/javascript", src = "https://cdnjs.cloudflare.com/ajax/libs/handsontable/15.0.0/handsontable.full.js"),
+      tags$script(type = "text/javascript", src = "handsontable.min.js"),
+      tags$script(type = "text/javascript", src = "handsontable.js")
   )
 )
 
