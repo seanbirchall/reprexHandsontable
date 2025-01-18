@@ -1,30 +1,66 @@
-# inst/examples/app.R
 library(shiny)
 library(reprexHandsontable)
 
 ui <- fluidPage(
-  # Add CDN dependencies directly
   tags$head(
     tags$link(href = "https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.css", rel = "stylesheet"),
-    tags$script(src = "https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.js")
+    tags$script(src = "https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.js"),
+    tags$style("
+      .header-row {
+        font-weight: bold !important;
+        font-style: italic !important;
+      }
+      .numeric-col {
+        background-color: #f8f9fa !important;
+      }
+      .highlight-range {
+        border: 2px solid #4CAF50 !important;
+      }
+      .special-cell {
+        border: 2px solid red !important;
+        font-weight: bold !important;
+      }
+    ")
   ),
 
-  titlePanel("Handsontable Demo"),
+  titlePanel("Handsontable Styling Demo"),
 
   sidebarLayout(
     sidebarPanel(
-      checkboxInput("show_headers", "Show Headers", TRUE),
-      checkboxInput("enable_resize", "Enable Resizing", TRUE),
-      checkboxInput("word_wrap", "Word Wrap", FALSE),
+      # Basic table controls
       checkboxInput("hide_grid", "Hide Grid Lines", FALSE),
-      numericInput("fixed_rows", "Fixed Rows", 0, min = 0, max = 5),
-      numericInput("fixed_cols", "Fixed Columns", 0, min = 0, max = 3),
-      actionButton("apply_style", "Apply Styling"),
-      actionButton("clear_style", "Clear Styling"),
+
+      # Styling sections
       hr(),
-      verbatimTextOutput("selection_info"),
-      verbatimTextOutput("change_info")
+      h4("Column Styling"),
+      checkboxGroupInput("cols_to_style", "Select columns to style:",
+                         choices = 1:3, selected = NULL),
+      actionButton("style_cols", "Style Columns"),
+
+      hr(),
+      h4("Row Styling"),
+      checkboxGroupInput("rows_to_style", "Select rows to style:",
+                         choices = 1:4, selected = NULL),
+      actionButton("style_rows", "Style Rows"),
+
+      hr(),
+      h4("Cell Styling"),
+      numericInput("cell_row", "Cell Row:", 1, min = 1, max = 4),
+      numericInput("cell_col", "Cell Column:", 1, min = 1, max = 3),
+      actionButton("style_cell", "Style Cell"),
+
+      hr(),
+      h4("Range Styling"),
+      numericInput("range_start_row", "Start Row:", 1, min = 1, max = 4),
+      numericInput("range_end_row", "End Row:", 2, min = 1, max = 4),
+      numericInput("range_start_col", "Start Column:", 1, min = 1, max = 3),
+      numericInput("range_end_col", "End Column:", 2, min = 1, max = 3),
+      actionButton("style_range", "Style Range"),
+
+      hr(),
+      actionButton("clear_all", "Clear All Styles", class = "btn-warning")
     ),
+
     mainPanel(
       handsontableOutput("hot_table")
     )
@@ -32,95 +68,100 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # Reactive values for styling
-  rv <- reactiveValues(
-    columnStyles = NULL,
-    rowStyles = NULL,
-    cellStyles = NULL
+  # Sample data
+  test_data <- data.frame(
+    Col1 = c("A1", "A2", "A3", "A4"),
+    Col2 = c("B1", "B2", "B3", "B4"),
+    Col3 = c("C1", "C2", "C3", "C4"),
+    stringsAsFactors = FALSE
   )
 
-  # Render the table
+  # Base table
   output$hot_table <- renderHandsontable({
     hot <- handsontable(
-      data = mtcars,
-      colHeaders = input$show_headers,
-      rowHeaders = input$show_headers,
-      fixedRowsTop = input$fixed_rows,
-      fixedColumnsLeft = input$fixed_cols,
-      manualColumnResize = input$enable_resize,
-      manualRowResize = input$enable_resize,
-      wordWrap = input$word_wrap,
+      data = test_data,
+      colHeaders = TRUE,
+      rowHeaders = TRUE,
       hideGridLines = input$hide_grid,
       height = "400px"
     )
 
-    # Apply any stored styles
-    if (!is.null(rv$columnStyles)) {
-      hot$x$columnStyles <- rv$columnStyles
+    # Style columns if any are selected
+    if (length(input$cols_to_style) > 0) {
+      hot <- style_cols(
+        hot,
+        cols = as.numeric(input$cols_to_style),
+        style = list(backgroundColor = "#f0f0f0"),
+        class = "numeric-col"
+      )
     }
-    if (!is.null(rv$rowStyles)) {
-      hot$x$rowStyles <- rv$rowStyles
-    }
-    if (!is.null(rv$cellStyles)) {
-      hot$x$cellStyles <- rv$cellStyles
+
+    # Style rows if any are selected
+    if (length(input$rows_to_style) > 0) {
+      hot <- style_rows(
+        hot,
+        rows = as.numeric(input$rows_to_style),
+        style = list(color = "#2c3e50"),
+        class = "header-row"
+      )
     }
 
     hot
   })
 
-  # Handle style application
-  observeEvent(input$apply_style, {
-    # Example styling - feel free to modify!
-    rv$columnStyles <- list(
-      list(
-        col = 0,
-        styles = list(list(backgroundColor = "#f0f0f0", fontWeight = "bold")),
-        classes = "numeric-col"
-      )
-    )
-
-    rv$rowStyles <- list(
-      list(
-        row = 0,
-        styles = list(list(backgroundColor = "#e6ffe6")),
-        classes = "header-row"
-      )
-    )
-
-    rv$cellStyles <- list(
-      list(
-        row = 1,
-        col = 1,
-        styles = list(
-          list(backgroundColor = "#ffe6e6", color = "#ff0000", fontWeight = "bold")
-        ),
-        classes = "highlight-cell"
-      )
-    )
+  # Handle single cell styling
+  observeEvent(input$style_cell, {
+    output$hot_table <- renderHandsontable({
+      hot <- handsontable(
+        data = test_data,
+        colHeaders = TRUE,
+        rowHeaders = TRUE,
+        hideGridLines = input$hide_grid
+      ) |>
+        style_cells(
+          cells = list(
+            list(row = input$cell_row, col = input$cell_col)
+          ),
+          style = list(backgroundColor = "#ffcccb"),
+          class = "special-cell"
+        )
+    })
   })
 
-  # Clear styles
-  observeEvent(input$clear_style, {
-    rv$columnStyles <- NULL
-    rv$rowStyles <- NULL
-    rv$cellStyles <- NULL
+  # Handle range styling
+  observeEvent(input$style_range, {
+    output$hot_table <- renderHandsontable({
+      hot <- handsontable(
+        data = test_data,
+        colHeaders = TRUE,
+        rowHeaders = TRUE,
+        hideGridLines = input$hide_grid
+      ) |>
+        style_cells(
+          ranges = list(
+            list(
+              start_row = input$range_start_row,
+              end_row = input$range_end_row,
+              start_col = input$range_start_col,
+              end_col = input$range_end_col
+            )
+          ),
+          style = list(backgroundColor = "#e6ffe6"),
+          class = "highlight-range"
+        )
+    })
   })
 
-  # Display selection information
-  output$selection_info <- renderPrint({
-    if (is.null(input$hot_table_select)) return("No selection")
-    sel <- input$hot_table_select
-    cat("Selected cells:\n")
-    cat("From row", sel$r, "col", sel$c, "\n")
-    cat("To row", sel$r2, "col", sel$c2, "\n")
-  })
-
-  # Display changes
-  output$change_info <- renderPrint({
-    if (is.null(input$hot_table_update)) return("No changes")
-    changes <- input$hot_table_update$update
-    cat("Last change:\n")
-    print(changes)
+  # Clear all styles
+  observeEvent(input$clear_all, {
+    output$hot_table <- renderHandsontable({
+      handsontable(
+        data = test_data,
+        colHeaders = TRUE,
+        rowHeaders = TRUE,
+        hideGridLines = input$hide_grid
+      )
+    })
   })
 }
 

@@ -78,3 +78,119 @@ renderHandsontable <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) }
   htmlwidgets::shinyRenderWidget(expr, handsontableOutput, env, quoted = TRUE)
 }
+
+#' Style multiple columns
+#'
+#' @param hot A handsontable object
+#' @param cols Numeric vector of column indices to style
+#' @param style List of style properties
+#' @param class Character vector of class names
+#' @return A modified handsontable object
+#' @export
+style_cols <- function(hot, cols, style = NULL, class = NULL) {
+  if (is.null(style) && is.null(class)) {
+    return(hot)
+  }
+
+  # Create column styles for each col
+  col_styles <- lapply(cols, function(col) {
+    list(
+      col = col - 1,  # Convert to 0-based index
+      styles = if (!is.null(style)) list(style),
+      classes = class
+    )
+  })
+
+  hot$x$columnStyles <- c(hot$x$columnStyles, col_styles)
+  hot
+}
+
+#' Style multiple rows
+#'
+#' @param hot A handsontable object
+#' @param rows Numeric vector of row indices to style
+#' @param style List of style properties
+#' @param class Character vector of class names
+#' @return A modified handsontable object
+#' @export
+style_rows <- function(hot, rows, style = NULL, class = NULL) {
+  if (is.null(style) && is.null(class)) {
+    return(hot)
+  }
+
+  # Create row styles for each row
+  row_styles <- lapply(rows, function(row) {
+    list(
+      row = row - 1,  # Convert to 0-based index
+      styles = if (!is.null(style)) list(style),
+      classes = class
+    )
+  })
+
+  hot$x$rowStyles <- c(hot$x$rowStyles, row_styles)
+  hot
+}
+
+#' Style cells or cell ranges
+#'
+#' @param hot A handsontable object
+#' @param cells List of cell specifications, each containing row and col indices
+#' @param ranges List of cell ranges, each containing start_row, end_row, start_col, end_col
+#' @param style List of style properties
+#' @param class Character vector of class names
+#' @return A modified handsontable object
+#' @export
+style_cells <- function(hot, cells = NULL, ranges = NULL, style = NULL, class = NULL) {
+  if (is.null(style) && is.null(class)) {
+    return(hot)
+  }
+
+  cell_styles <- list()
+
+  # Process individual cells
+  if (!is.null(cells)) {
+    cell_styles <- c(cell_styles, lapply(cells, function(cell) {
+      list(
+        row = cell$row - 1,  # Convert to 0-based index
+        col = cell$col - 1,  # Convert to 0-based index
+        styles = if (!is.null(style)) list(style),
+        classes = class
+      )
+    }))
+  }
+
+  # Process ranges
+  if (!is.null(ranges)) {
+    for(range in ranges) {
+      rows <- seq(range$start_row - 1, range$end_row - 1)  # Convert to 0-based
+      cols <- seq(range$start_col - 1, range$end_col - 1)  # Convert to 0-based
+
+      for(row in rows) {
+        for(col in cols) {
+          cell_styles <- c(cell_styles, list(list(
+            row = row,
+            col = col,
+            styles = if (!is.null(style)) list(style),
+            classes = class
+          )))
+        }
+      }
+    }
+  }
+
+  hot$x$cellStyles <- c(hot$x$cellStyles, cell_styles)
+  hot
+}
+
+#' Clear all styles from a handsontable
+#'
+#' @param hot A handsontable object
+#' @param what Character vector specifying what to clear: "all", "rows", "cols", "cells"
+#' @return A modified handsontable object
+#' @export
+clear_styles <- function(hot, what = "all") {
+  if (what == "all" || what == "cols") hot$x$columnStyles <- NULL
+  if (what == "all" || what == "rows") hot$x$rowStyles <- NULL
+  if (what == "all" || what == "cells") hot$x$cellStyles <- NULL
+  hot
+}
