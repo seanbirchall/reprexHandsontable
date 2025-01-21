@@ -12,7 +12,7 @@ HTMLWidgets.widget({
           return;
         }
 
-        if(el.hot && el.hot.destroy) {
+        if (el.hot && el.hot.destroy) {
           el.hot.destroy();
         }
 
@@ -121,6 +121,7 @@ HTMLWidgets.widget({
           manualColumnResize: x.manualColumnResize || false,
           manualRowResize: x.manualRowResize || false,
           wordWrap: x.wordWrap || false,
+          readOnly: x.readOnly === true,
           cells: function(row, col) {
             return getCellConfig(row, col);
           },

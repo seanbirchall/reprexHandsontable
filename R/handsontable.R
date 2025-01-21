@@ -15,6 +15,7 @@
 #' @param manualRowResize Allow manual row resizing
 #' @param wordWrap Enable word wrapping in cells
 #' @param hideGridLines Whether to hide the grid lines
+#' @param readOnly read only table
 #'
 #' @return A Handsontable widget object
 #' @export
@@ -23,7 +24,7 @@ handsontable <- function(
     fixedRowsTop = 0, fixedColumnsLeft = 0, mergeCells = 0,
     licenseKey = "non-commercial-and-evaluation", height = "400px", width = "100%",
     manualColumnResize = TRUE, manualRowResize = TRUE, wordWrap = FALSE,
-    hideGridLines = FALSE
+    hideGridLines = FALSE, readOnly = FALSE
 ) {
   if (is.data.frame(data)) {
     if (is.null(colHeaders)) {
@@ -48,7 +49,8 @@ handsontable <- function(
       manualColumnResize = manualColumnResize,
       manualRowResize = manualRowResize,
       wordWrap = wordWrap,
-      hideGridLines = hideGridLines
+      hideGridLines = hideGridLines,
+      readOnly = readOnly
     ),
     width = width,
     height = height,

@@ -39,6 +39,7 @@ ui <- fluidPage(
       checkboxInput("manualRowResize", "Enable Row Resize", TRUE),
       checkboxInput("wordWrap", "Enable Word Wrap", FALSE),
       checkboxInput("hideGridLines", "Hide Grid Lines", FALSE),
+      checkboxInput("readOnly", "Read Only", FALSE),
 
       # Dimensions
       textInput("height", "Table Height", "400px"),
@@ -85,6 +86,7 @@ server <- function(input, output, session) {
       manualRowResize = input$manualRowResize,
       wordWrap = input$wordWrap,
       hideGridLines = input$hideGridLines,
+      readOnly = input$readOnly,
       height = input$height,
       width = input$width
     )
