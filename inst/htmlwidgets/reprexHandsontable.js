@@ -168,3 +168,24 @@ HTMLWidgets.widget({
     }
   }
 });
+
+// Update table programmatically
+if (HTMLWidgets.shinyMode) {
+  Shiny.addCustomMessageHandler('handsontable-update', function(message) {
+    // Find the Handsontable instance by ID
+    var el = document.getElementById(message.id);
+    if (!el || !el.hot) {
+      console.error('Handsontable instance not found with ID:', message.id);
+      return;
+    }
+
+    // Choose the appropriate method based on the message
+    if (message.method === 'updateData') {
+      el.hot.updateData(message.data, message.source);
+    } else if (message.method === 'loadData') {
+      el.hot.loadData(message.data, message.source);
+    } else {
+      console.error('Unknown method:', message.method);
+    }
+  });
+}

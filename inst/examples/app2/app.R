@@ -30,6 +30,7 @@ ui <- fluidPage(
 
   sidebarLayout(
     sidebarPanel(
+      actionButton("updateBtn", "Update Random Data"),
       # Basic settings
       checkboxInput("colHeaders", "Show Column Headers", TRUE),
       checkboxInput("rowHeaders", "Show Row Headers", FALSE),
@@ -128,6 +129,19 @@ server <- function(input, output, session) {
         style = list(background = "#e6e6ff"),
         class = "styled-range"
       )
+
+    # Add observer for data updates
+    observeEvent(input$updateBtn, {
+      # Create random data matching mtcars structure
+      newData <- data.frame(
+        matrix(rnorm(ncol(mtcars) * nrow(mtcars)),
+               nrow = nrow(mtcars),
+               ncol = ncol(mtcars))
+      )
+      names(newData) <- names(mtcars)
+
+      updateHandsontableData("hot", newData)
+    })
   })
 }
 

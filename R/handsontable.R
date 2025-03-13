@@ -196,3 +196,75 @@ clear_styles <- function(hot, what = "all") {
   if (what == "all" || what == "cells") hot$x$cellStyles <- NULL
   hot
 }
+
+#' Update a Handsontable with new data
+#'
+#' Updates a Handsontable widget with new data without resetting cell states, formatting,
+#' row order, or column order.
+#'
+#' @param session The Shiny session object
+#' @param outputId The ID of the handsontable output element
+#' @param data A data frame containing the new data
+#' @param source Optional string indicating the source of the update
+#'
+#' @return None, called for side effects
+#' @export
+updateHandsontable <- function(session=shiny::getDefaultReactiveDomain(), outputId, data, source = NULL) {
+  if (!is.data.frame(data)) {
+    stop("data must be a dataframe")
+  }
+
+  # Convert data frame to list of rows (same format as in handsontable function)
+  data_list <- lapply(1:nrow(data), function(i) as.list(data[i, ]))
+
+  # Create message for Shiny
+  message <- list(
+    id = outputId,
+    method = "updateData",
+    data = data_list
+  )
+
+  # Add source if provided
+  if (!is.null(source)) {
+    message$source <- source
+  }
+
+  # Send the message to the client
+  session$sendCustomMessage("handsontable-update", message)
+}
+
+#' Load data into a Handsontable and reset states
+#'
+#' Loads new data into a Handsontable widget and resets cell states, formatting,
+#' row order, and column order.
+#'
+#' @param session The Shiny session object
+#' @param outputId The ID of the handsontable output element
+#' @param data A data frame containing the new data
+#' @param source Optional string indicating the source of the update
+#'
+#' @return None, called for side effects
+#' @export
+loadHandsontable <- function(session=shiny::getDefaultReactiveDomain(), outputId, data, source = NULL) {
+  if (!is.data.frame(data)) {
+    stop("data must be a dataframe")
+  }
+
+  # Convert data frame to list of rows (same format as in handsontable function)
+  data_list <- lapply(1:nrow(data), function(i) as.list(data[i, ]))
+
+  # Create message for Shiny
+  message <- list(
+    id = outputId,
+    method = "loadData",
+    data = data_list
+  )
+
+  # Add source if provided
+  if (!is.null(source)) {
+    message$source <- source
+  }
+
+  # Send the message to the client
+  session$sendCustomMessage("handsontable-update", message)
+}
